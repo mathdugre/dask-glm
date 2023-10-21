@@ -204,6 +204,22 @@ class LinearRegression(_GLM):
         return mean_squared_error(y, self.predict(X))
 
 
+class RidgeRegression(LinearRegression):
+    def __init__(self, alpha=1., *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.alpha = alpha
+        if self.solver_kwargs:
+            self.solver_kwargs.update({"alpha": self.alpha})
+        else:
+            self.solver_kwargs = {"alpha": self.alpha}
+
+        ridge_solvers = ["svd"]
+        if self.solver not in ridge_solvers:
+            msg = "'solver' must be {}. Got '{}' instead".format(ridge_solvers, self.solver)
+            raise ValueError(msg)
+
+
 class PoissonRegression(_GLM):
     """
     Estimator for Poisson Regression.
