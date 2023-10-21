@@ -504,10 +504,43 @@ def proximal_grad(
         return beta
 
 
+@normalize
+def svd(X, y, alpha=1., **kwargs):
+    # This SVD algorithm expect y to be a 2d-array.
+    ravel = False
+    if y.ndim == 1:
+        y = y.reshape(-1, 1)
+        ravel = True
+
+    # There should be either 1 or n_targets penalties
+    _, n_targets = y.shape
+    alpha = da.asarray(alpha, dtype=X.dtype).ravel()
+    if alpha.size not in [1, n_targets]:
+        raise ValueError(
+            "Number of targets and number of penalties do not correspond: %d != %d"
+            % (alpha.size, n_targets)
+        )
+
+    # REF: https://github.com/scikit-learn/scikit-learn/commit/814ad9ba14ea1f53da353368d34daf89061cf92e#diff-e7a1a6bac747c5273cc1e858fb418e7a86ceb453dc8a9ba92839da3d69932ba9
+    U, s, Vt = da.linalg.svd(X)
+    idx = s <= 1e-15  # same default value as scipy.linalg.pinv
+    UTy = dot(U.T, y)
+    s[idx] = 0.
+    d = s[:, np.newaxis] / (s[:, np.newaxis] ** 2 + alpha)
+    d_UT_y = d * UTy
+    coef = dot(Vt.T, d_UT_y).T
+
+    if ravel:
+        # When y was passed as a 1d-array, we flatten the coefficients.
+        coef = coef.ravel()
+    return coef.compute()
+
+
 _solvers = {
     "admm": admm,
     "gradient_descent": gradient_descent,
     "newton": newton,
     "lbfgs": lbfgs,
     "proximal_grad": proximal_grad,
+    "svd": svd,
 }
