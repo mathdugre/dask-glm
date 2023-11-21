@@ -15,8 +15,9 @@ setup(
     packages=["dask_glm"],
     long_description=(open("README.rst").read() if exists("README.rst") else ""),
     install_requires=list(open("requirements.txt").read().strip().split("\n")),
-    use_scm_version=True,
-    setup_requires=["setuptools_scm"],
+    # use_scm_version=True,
+    # setup_requires=["setuptools_scm"],
+    version="0.3.0",
     extras_require={
         "docs": [
             "jupyter",
